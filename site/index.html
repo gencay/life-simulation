@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A continuously evolving Gray-Scott reaction-diffusion experiment.">
+    <title>Life Simulation Observatory</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <p class="eyebrow">LIVE COMPUTATIONAL EXPERIMENT</p>
+      <h1>Life Simulation Observatory</h1>
+      <p class="lede">
+        A Gray–Scott reaction-diffusion system evolving four times daily on
+        GitHub Actions. Each observation advances the numerical field,
+        measures its structure, and publishes the result.
+      </p>
+      <div class="status"><span></span> Latest deployment online</div>
+    </header>
+
+    <main>
+      <section class="visualization" aria-labelledby="current-state">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">CURRENT FIELD</p>
+            <h2 id="current-state">Generation <span id="generation">—</span></h2>
+          </div>
+          <time id="updated-at">Loading observation…</time>
+        </div>
+        <div class="field-frame">
+          <img src="data/latest.svg" alt="Current reaction-diffusion concentration field">
+        </div>
+      </section>
+
+      <section class="metrics" aria-label="Latest measurements">
+        <article>
+          <span>Active cells</span>
+          <strong id="active-cells">—</strong>
+          <small>V concentration above 0.10</small>
+        </article>
+        <article>
+          <span>Mean concentration</span>
+          <strong id="mean-v">—</strong>
+          <small>Mean V across the field</small>
+        </article>
+        <article>
+          <span>Spatial variation</span>
+          <strong id="deviation-v">—</strong>
+          <small>Standard deviation of V</small>
+        </article>
+      </section>
+
+      <section class="panel" aria-labelledby="history-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">OBSERVATION HISTORY</p>
+            <h2 id="history-heading">Pattern activity over time</h2>
+          </div>
+        </div>
+        <canvas id="history-chart" height="280" aria-label="Active cells by generation"></canvas>
+      </section>
+
+      <section class="about">
+        <article class="panel">
+          <p class="eyebrow">THE MODEL</p>
+          <h2>How it works</h2>
+          <p>
+            Two chemical concentrations, U and V, diffuse across a periodic
+            64 × 64 field and react with one another. A steady feed introduces
+            U while V is removed. That imbalance creates stable spots, waves,
+            and branching structures without a prescribed final shape.
+          </p>
+          <div class="equations">
+            <code>∂U/∂t = Dᵤ∇²U − UV² + F(1 − U)</code>
+            <code>∂V/∂t = Dᵥ∇²V + UV² − (F + k)V</code>
+          </div>
+        </article>
+        <article class="panel">
+          <p class="eyebrow">REPRODUCIBILITY</p>
+          <h2>Open experiment</h2>
+          <p>
+            The full state, source code, measurements, and run history are
+            committed after every observation. Runs are deterministic from
+            the persisted state and require no external dependencies.
+          </p>
+          <a href="https://github.com/gencay/life-simulation">View source and run history →</a>
+        </article>
+      </section>
+    </main>
+
+    <footer>
+      <span>Gray–Scott parameters: Dᵤ 0.16 · Dᵥ 0.08 · F 0.060 · k 0.062</span>
+      <a href="https://github.com/gencay/life-simulation/actions">Workflow status</a>
+    </footer>
+  </body>
+</html>

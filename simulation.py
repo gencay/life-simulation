@@ -8,6 +8,7 @@ import csv
 import json
 import math
 import random
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -152,7 +153,27 @@ def append_history(destination: Path, metrics: dict) -> None:
         writer.writerow(metrics)
 
 
-def run(output_directory: Path, steps: int) -> dict:
+def publish_dashboard(output_directory: Path, site_directory: Path) -> None:
+    data_directory = site_directory / "data"
+    data_directory.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(output_directory / "latest.svg", data_directory / "latest.svg")
+    shutil.copyfile(output_directory / "metrics.json", data_directory / "metrics.json")
+
+    with (output_directory / "history.csv").open(
+        newline="", encoding="utf-8"
+    ) as history_file:
+        history = list(csv.DictReader(history_file))
+    (data_directory / "history.json").write_text(
+        json.dumps(history, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+def run(
+    output_directory: Path,
+    steps: int,
+    site_directory: Path | None = None,
+) -> dict:
     output_directory.mkdir(parents=True, exist_ok=True)
     state_path = output_directory / "state.json"
     if state_path.exists():
@@ -172,18 +193,21 @@ def run(output_directory: Path, steps: int) -> dict:
     )
     append_history(output_directory / "history.csv", metrics)
     render_svg(state, output_directory / "latest.svg")
+    if site_directory is not None:
+        publish_dashboard(output_directory, site_directory)
     return metrics
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=Path("simulation"))
+    parser.add_argument("--site", type=Path, default=Path("site"))
     parser.add_argument("--steps", type=int, default=STEPS_PER_GENERATION)
     args = parser.parse_args()
     if args.steps <= 0:
         parser.error("--steps must be positive")
 
-    print(json.dumps(run(args.output, args.steps), indent=2))
+    print(json.dumps(run(args.output, args.steps, args.site), indent=2))
 
 
 if __name__ == "__main__":

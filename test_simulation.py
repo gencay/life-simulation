@@ -21,12 +21,15 @@ class SimulationTests(unittest.TestCase):
     def test_run_persists_and_continues_state(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory)
-            first = simulation.run(output, steps=1)
-            second = simulation.run(output, steps=1)
+            site = output / "site"
+            first = simulation.run(output, steps=1, site_directory=site)
+            second = simulation.run(output, steps=1, site_directory=site)
 
             self.assertEqual(first["generation"], 1)
             self.assertEqual(second["generation"], 2)
             self.assertTrue((output / "latest.svg").exists())
+            self.assertTrue((site / "data" / "latest.svg").exists())
+            self.assertTrue((site / "data" / "history.json").exists())
             self.assertEqual(
                 len((output / "history.csv").read_text().splitlines()),
                 3,
