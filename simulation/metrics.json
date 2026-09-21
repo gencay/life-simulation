@@ -1,8 +1,8 @@
 {
-  "generation": 5,
-  "updated_at": "2026-09-21T04:48:42.629026+00:00",
-  "mean_v": 0.02690286,
-  "standard_deviation_v": 0.08664004,
-  "active_cells": 345,
+  "generation": 6,
+  "updated_at": "2026-09-21T15:07:11.647054+00:00",
+  "mean_v": 0.02991261,
+  "standard_deviation_v": 0.09083847,
+  "active_cells": 388,
   "total_cells": 4096
 }
