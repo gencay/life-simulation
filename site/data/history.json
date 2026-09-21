@@ -1,0 +1,26 @@
+[
+  {
+    "generation": "1",
+    "updated_at": "2026-09-21T04:33:56.638794+00:00",
+    "mean_v": "0.01444056",
+    "standard_deviation_v": "0.06607923",
+    "active_cells": "179",
+    "total_cells": "4096"
+  },
+  {
+    "generation": "2",
+    "updated_at": "2026-09-21T04:34:39.661270+00:00",
+    "mean_v": "0.0175021",
+    "standard_deviation_v": "0.07167223",
+    "active_cells": "225",
+    "total_cells": "4096"
+  },
+  {
+    "generation": "3",
+    "updated_at": "2026-09-21T04:40:18.384346+00:00",
+    "mean_v": "0.02076203",
+    "standard_deviation_v": "0.07718553",
+    "active_cells": "266",
+    "total_cells": "4096"
+  }
+]
