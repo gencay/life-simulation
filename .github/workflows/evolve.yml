@@ -1,6 +1,13 @@
 name: Evolve simulation
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "simulation.py"
+      - "test_simulation.py"
+      - ".github/workflows/evolve.yml"
   schedule:
     - cron: "17 2,8,14,20 * * *"
   workflow_dispatch:

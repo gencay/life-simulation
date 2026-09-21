@@ -20,6 +20,7 @@ DV = 0.08
 FEED = 0.060
 KILL = 0.062
 DT = 1.0
+MAX_FRAMES = 48
 
 
 def initial_state(seed: int = 20260920) -> dict:
@@ -153,6 +154,30 @@ def append_history(destination: Path, metrics: dict) -> None:
         writer.writerow(metrics)
 
 
+def record_frame(output_directory: Path, state: dict) -> list[dict]:
+    destination = output_directory / "frames.json"
+    frames = (
+        json.loads(destination.read_text(encoding="utf-8"))
+        if destination.exists()
+        else []
+    )
+    frame = {
+        **measurements(state),
+        "width": state["width"],
+        "height": state["height"],
+        "pixels": [
+            min(255, max(0, round(value * 680)))
+            for row in state["v"]
+            for value in row
+        ],
+    }
+    frames = [item for item in frames if item["generation"] != frame["generation"]]
+    frames.append(frame)
+    frames = sorted(frames, key=lambda item: item["generation"])[-MAX_FRAMES:]
+    destination.write_text(json.dumps(frames, separators=(",", ":")) + "\n")
+    return frames
+
+
 def publish_dashboard(output_directory: Path, site_directory: Path) -> None:
     data_directory = site_directory / "data"
     data_directory.mkdir(parents=True, exist_ok=True)
@@ -167,6 +192,21 @@ def publish_dashboard(output_directory: Path, site_directory: Path) -> None:
         json.dumps(history, indent=2) + "\n",
         encoding="utf-8",
     )
+    state = json.loads((output_directory / "state.json").read_text(encoding="utf-8"))
+    frames = record_frame(output_directory, state)
+    # One response keeps the field, chart, and readings on the same generation.
+    (data_directory / "dashboard.json").write_text(
+        json.dumps(
+            {
+                "metrics": measurements(state),
+                "parameters": state["parameters"],
+                "history": history,
+                "frames": frames,
+            },
+            separators=(",", ":"),
+        ) + "\n",
+        encoding="utf-8",
+    )
 
 
 def run(
@@ -178,6 +218,7 @@ def run(
     state_path = output_directory / "state.json"
     if state_path.exists():
         state = json.loads(state_path.read_text(encoding="utf-8"))
+        record_frame(output_directory, state)
     else:
         state = initial_state()
 
@@ -193,6 +234,7 @@ def run(
     )
     append_history(output_directory / "history.csv", metrics)
     render_svg(state, output_directory / "latest.svg")
+    record_frame(output_directory, state)
     if site_directory is not None:
         publish_dashboard(output_directory, site_directory)
     return metrics

@@ -3,42 +3,60 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="A continuously evolving Gray-Scott reaction-diffusion experiment.">
-    <title>Life Simulation Observatory</title>
+    <meta name="description" content="An AI-authored exploration of life's origins through chemical self-organization, with recorded evolution and live observations.">
+    <title>Life's Origins | Life Simulation Observatory</title>
     <link rel="stylesheet" href="styles.css">
     <script src="app.js" defer></script>
   </head>
   <body>
     <header>
-      <p class="eyebrow">LIVE COMPUTATIONAL EXPERIMENT</p>
-      <h1>Life Simulation Observatory</h1>
+      <p class="eyebrow">AN AI-AUTHORED ORIGINS EXPLORATION</p>
+      <h1>From chemistry<br>to order.</h1>
       <p class="lede">
-        A Gray–Scott reaction-diffusion system evolving four times daily on
-        GitHub Actions. Each observation advances the numerical field,
-        measures its structure, and publishes the result.
+        How might life begin? This ongoing experiment explores how simple
+        chemical interactions can organize themselves into persistent patterns:
+        one possible ingredient in the transition from nonliving matter to life.
       </p>
-      <div class="status"><span></span> Latest deployment online</div>
+      <p class="caveat">A model of chemical self-organization, not proof or a reconstruction of life's origin.</p>
+      <div class="status" id="status" data-state="loading">
+        <span aria-hidden="true"></span><output id="sync-status" aria-live="polite">Loading published observations…</output>
+      </div>
+      <p class="schedule">
+        Observations at 02:17, 08:17, 14:17 and 20:17 UTC. This page checks for
+        new results every minute; simulation time is not real-world time.
+      </p>
+      <noscript><p>Enable JavaScript for the historical chart, playback, and automatic updates. The latest field is shown below.</p></noscript>
     </header>
 
     <main>
       <section class="visualization" aria-labelledby="current-state">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">CURRENT FIELD</p>
+            <p class="eyebrow" id="view-mode">LATEST PUBLISHED FIELD</p>
             <h2 id="current-state">Generation <span id="generation">—</span></h2>
           </div>
           <time id="updated-at">Loading observation…</time>
         </div>
         <div class="field-frame">
-          <img src="data/latest.svg" alt="Current reaction-diffusion concentration field">
+          <img id="field-image" src="data/latest.svg" alt="Latest reaction-diffusion concentration field">
+          <canvas id="field-canvas" hidden role="img" aria-label="Recorded reaction-diffusion field"></canvas>
         </div>
+        <div class="playback">
+          <button id="play" type="button" disabled>Play recorded evolution</button>
+          <button id="go-live" type="button" disabled>Latest observation</button>
+          <button id="refresh" type="button">Check for updates</button>
+        </div>
+        <label for="timeline">Explore recorded generations</label>
+        <input id="timeline" type="range" min="0" max="0" value="0" disabled>
+        <p id="frame-caption" class="schedule">Loading recorded fields…</p>
+        <p class="schedule">Brighter regions indicate more V. Playback shows saved observations, not a continuously running simulation.</p>
       </section>
 
       <section class="metrics" aria-label="Latest measurements">
         <article>
-          <span>Active cells</span>
+          <span>Active grid sites</span>
           <strong id="active-cells">—</strong>
-          <small>V concentration above 0.10</small>
+          <small>V above 0.10; not biological cells</small>
         </article>
         <article>
           <span>Mean concentration</span>
@@ -56,10 +74,46 @@
         <div class="section-heading">
           <div>
             <p class="eyebrow">OBSERVATION HISTORY</p>
-            <h2 id="history-heading">Pattern activity over time</h2>
+            <h2 id="history-heading">How the system is changing</h2>
+          </div>
+          <div>
+            <label for="chart-metric">Measurement</label>
+            <select id="chart-metric">
+              <option value="active_cells">Active grid sites</option>
+              <option value="mean_v">Mean V concentration</option>
+              <option value="standard_deviation_v">Spatial variation of V</option>
+            </select>
           </div>
         </div>
-        <canvas id="history-chart" height="280" aria-label="Active cells by generation"></canvas>
+        <canvas id="history-chart" height="280" role="img" aria-label="Active grid sites by generation"></canvas>
+        <p id="chart-summary" class="schedule" aria-live="polite">Loading measurement history…</p>
+        <details>
+          <summary>Recent observations as a table</summary>
+          <div class="table-scroll">
+            <table>
+              <caption>Latest 12 observations (the chart includes the full history)</caption>
+              <thead><tr><th scope="col">Generation</th><th scope="col">Observed (UTC)</th><th scope="col">Active sites</th><th scope="col">Mean V</th><th scope="col">Variation</th></tr></thead>
+              <tbody id="history-table"></tbody>
+            </table>
+          </div>
+        </details>
+      </section>
+
+      <section class="panel interpretation" aria-labelledby="interpretation-heading">
+        <p class="eyebrow">AI'S INTERPRETATION</p>
+        <h2 id="interpretation-heading">Organization before biology</h2>
+        <p>
+          My interpretation is that sustained chemical interactions can create
+          order without a designer prescribing each shape. That makes
+          self-organization an interesting starting point for thinking about
+          life's origins, but organized chemistry alone is not life.
+        </p>
+        <p id="interpretation">The latest observation will be interpreted once its measurements load.</p>
+        <p class="schedule">
+          AI-authored explanation; measurement commentary follows fixed rules,
+          not a new AI inference on every run. No genetics, membranes,
+          metabolism, reproduction, or natural selection are modeled here.
+        </p>
       </section>
 
       <section class="about">
@@ -68,9 +122,10 @@
           <h2>How it works</h2>
           <p>
             Two chemical concentrations, U and V, diffuse across a periodic
-            64 × 64 field and react with one another. A steady feed introduces
-            U while V is removed. That imbalance creates stable spots, waves,
-            and branching structures without a prescribed final shape.
+            64 × 64 field with wraparound boundaries and react with one another.
+            A steady feed introduces U while V is removed. The Gray–Scott
+            equations can produce spots and other organized patterns; what
+            actually persists depends on the parameters and initial conditions.
           </p>
           <div class="equations">
             <code>∂U/∂t = Dᵤ∇²U − UV² + F(1 − U)</code>
@@ -79,12 +134,14 @@
         </article>
         <article class="panel">
           <p class="eyebrow">REPRODUCIBILITY</p>
-          <h2>Open experiment</h2>
+          <h2>What this can tell us</h2>
           <p>
             The full state, source code, measurements, and run history are
-            committed after every observation. Runs are deterministic from
-            the persisted state and require no external dependencies.
+            committed after every observation. Compare persistence, spreading,
+            and spatial variation across generations. These measurements track
+            chemical patterns, not a probability that life has emerged.
           </p>
+          <p>Each observation advances 80 numerical steps. The four-daily publishing schedule is a practical choice, not a scientific standard.</p>
           <a href="https://github.com/gencay/life-simulation">View source and run history →</a>
         </article>
       </section>

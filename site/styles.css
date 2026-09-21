@@ -78,12 +78,39 @@ h2 {
   font-size: 0.85rem;
 }
 
-.status span {
+.status > span {
   width: 0.55rem;
   height: 0.55rem;
   border-radius: 50%;
   background: var(--green);
   box-shadow: 0 0 18px var(--green);
+}
+
+.status[data-state="error"] > span,
+.status[data-state="delayed"] > span {
+  background: #fbbf24;
+  box-shadow: none;
+}
+
+.status[data-state="loading"] > span {
+  background: var(--muted);
+  box-shadow: none;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.schedule,
+.caveat {
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: 0.85rem;
+  margin-top: 1rem;
+}
+
+.caveat {
+  color: var(--cyan);
 }
 
 main {
@@ -127,7 +154,8 @@ small {
   background: #030712;
 }
 
-.field-frame img {
+.field-frame img,
+.field-frame canvas {
   display: block;
   width: 100%;
   image-rendering: pixelated;
@@ -161,6 +189,84 @@ small {
 
 #history-chart {
   width: 100%;
+  height: 280px;
+  display: block;
+}
+
+.playback {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin: 1.2rem 0;
+}
+
+button,
+select {
+  font: inherit;
+  color: var(--text);
+  background: #162438;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  padding: 0.65rem 0.85rem;
+}
+
+button,
+summary {
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--green);
+}
+
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 4px;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+#timeline {
+  width: 100%;
+  accent-color: var(--green);
+}
+
+.interpretation p:not(.eyebrow) {
+  line-height: 1.7;
+  margin-top: 1rem;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+caption {
+  text-align: left;
+  color: var(--muted);
+  padding: 1rem 0;
+}
+
+td,
+th {
+  text-align: left;
+  padding: 0.8rem;
+  border-bottom: 1px solid var(--line);
 }
 
 .about {
