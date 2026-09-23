@@ -110,5 +110,13 @@
     "standard_deviation_v": "0.11367053",
     "active_cells": "681",
     "total_cells": "4096"
+  },
+  {
+    "generation": "15",
+    "updated_at": "2026-09-23T18:24:46.886736+00:00",
+    "mean_v": "0.05435992",
+    "standard_deviation_v": "0.11597455",
+    "active_cells": "690",
+    "total_cells": "4096"
   }
 ]
