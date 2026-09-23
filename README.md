@@ -58,3 +58,9 @@ numerical steps with timestep 1 in model units, not hours of early-Earth history
 
 Full concentration fields, measurements, and previous versions remain auditable
 in this repository's commit history.
+
+## Continuing development
+
+[Project instructions and session handoff](AGENTS.md) records the owner's
+requirements, architecture, commit identity, and automation details for future
+sessions and devices.
