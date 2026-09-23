@@ -44,10 +44,10 @@ and 20:17 UTC each day. Each run:
 5. Commits the evolved state and dashboard data.
 6. Deploys the updated GitHub Pages dashboard.
 
-Each generation has its own commit, authored and committed as `gencay` using
-the account's GitHub-provided private email address. GitHub Actions still
-executes the automation and authenticates the push; existing commits are
-unchanged.
+Each generation has its own commit, authored and committed as
+`gencay <gencay.ali@hotmail.com>`. Earlier commit identities have been
+normalized to this identity, preserving original dates and simulation results.
+GitHub Actions still executes the automation and authenticates the push.
 
 GitHub schedules are best-effort and can occasionally start later than the
 configured time. The workflow can also be started manually from the Actions
