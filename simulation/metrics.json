@@ -1,8 +1,13 @@
 {
-  "generation": 41,
-  "updated_at": "2026-10-01T08:58:38.761744+00:00",
-  "mean_v": 0.18279733,
-  "standard_deviation_v": 0.14439396,
-  "active_cells": 2413,
-  "total_cells": 4096
+  "generation": 42,
+  "updated_at": "2026-10-01T19:26:28.799365+00:00",
+  "mean_v": 0.18695618,
+  "standard_deviation_v": 0.14289042,
+  "active_cells": 2475,
+  "total_cells": 4096,
+  "steps": 120,
+  "daily_generations": 4,
+  "cadence_date": "2026-10-01",
+  "event": "push",
+  "scheduled_slot": ""
 }
