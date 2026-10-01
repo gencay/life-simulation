@@ -41,12 +41,16 @@ this distinction; do not imply fresh model inference where none occurs.
 
 - Keep the experiment evolving automatically without requiring an open CLI or
   the owner's computer to remain on.
-- Run at least a couple of times daily. The original every-two-hours request
-  was superseded by the current four-daily schedule.
+- Use a daily random draw of 3-6 scheduled generations. This supersedes both
+  the original two-hour cadence and the later fixed four-daily schedule.
 - There is no universal scientific wall-clock schedule for this model. Describe
   the cadence as a publishing choice, not a scientific standard.
 - Publish actual simulation results to the project's own GitHub Pages dashboard.
 - Show historical charts and how the field changes over recorded generations.
+- Feature a market-ticker-style SVG in the main README, including all-history
+  activity, latest numerical deltas, and recorded field snapshots.
+- Make the daily draw affect the next generation's numerical evolution and
+  record the choice. Preserve reproducibility and the chemical parameters.
 - Refresh the open dashboard when new results are published. Distinguish
   historical playback from the latest observation and from continuous compute.
 - Commit each generation separately. Do not squash multiple generation results
@@ -94,22 +98,35 @@ JavaScript without a frontend build system.
 | Resource | Responsibility |
 | --- | --- |
 | `simulation.py` | Numerical evolution, metrics, snapshots, and dashboard data publication |
+| `evolution_ticker.py` | Self-contained README SVG with full-history chart and embedded field snapshots |
 | `test_simulation.py` | State continuation, generation changes, frame integrity, retention, and history checks |
+| `test_evolution_ticker.py` | SVG history coverage, image integrity, zero/flat histories, and numerical deltas |
 | `simulation\state.json` | Full-precision U/V fields and parameters; source for the next run |
 | `simulation\metrics.json` | Latest generation's measurements and observation timestamp |
 | `simulation\history.csv` | Complete measurement history |
 | `simulation\frames.json` | Most recent 48 recorded, display-quantized concentration frames |
 | `simulation\latest.svg` | Latest field visualization |
+| `simulation\evolution.svg` | README market-style evolution ticker, regenerated on publication |
 | `site\index.html` | Project aim, model explanation, interpretation, and dashboard structure |
 | `site\app.js` | Chart selection, replay, scrubbing, commentary, polling, and error reporting |
 | `site\styles.css` | Responsive dashboard styling |
 | `site\data\dashboard.json` | Coherent bundle of metrics, parameters, full history, and retained frames |
-| `site\data\history.json`, `metrics.json`, `latest.svg` | Additional published result files |
+| `site\data\history.json`, `metrics.json`, `latest.svg`, `evolution.svg` | Additional published result files |
 | `.github\workflows\evolve.yml` | Generation commits and GitHub Pages deployment |
 
 Current model: periodic 64 x 64 grid, diffusion U 0.16, diffusion V 0.08,
-feed 0.060, kill 0.062, timestep 1. Each generation advances 80 numerical
-steps; these units are not hours of early-Earth history.
+feed 0.060, kill 0.062, timestep 1. The daily draw selects 3, 4, 5, or 6
+scheduled observations, each advancing 160, 120, 96, or 80 steps respectively.
+A fully completed scheduled day uses a 480-step budget. Fewer observations
+let the field advance further before the next snapshot; the chemistry does
+not change. These units are not hours of early-Earth history.
+
+The pseudorandom daily plan is seeded with `life-simulation-cadence-v1:YYYY-MM-DD`
+in UTC, so retries and different devices reconstruct the same count and windows.
+The current plan (date, seed, hours, count, step budget) lives in the state and
+dashboard bundle; per-generation history records step count, daily count,
+cadence date, event, and scheduled slot. Older CSV rows retain all measurements
+and have blank new metadata fields instead of invented historical values.
 
 "Active sites" means grid locations with V above 0.10, not biological cells.
 Charts offer active-site count, mean V, and spatial standard deviation.
@@ -119,20 +136,31 @@ recovered from actual commits, not synthesized.
 
 The visible page polls every 60 seconds and refreshes on returning to the tab.
 It keeps the last good observation if updates fail, visibly reports errors,
-and warns if the latest observation is more than eight hours old.
+and warns if the latest observation is more than ten hours old (the planned
+maximum eight-hour interval plus two hours of scheduling tolerance).
 
 ## Automation and deployment
 
 - Workflow: `Evolve simulation`, file `.github\workflows\evolve.yml`.
-- Schedule: `17 2,8,14,20 * * *` (02:17, 08:17, 14:17, 20:17 UTC).
+- Schedule checks: `17 0,4,8,12,16,20 * * *`. The 00:17, 08:17, and 16:17
+  UTC windows are always selected; the daily draw adds zero to three of the
+  remaining windows. There are 3-6 planned scheduled generations per UTC day.
+- Unselected or already committed windows do not advance or commit state.
+  `last_scheduled_slot` guards against duplicate and out-of-order scheduled
+  retries. Jobs use their execution-time UTC four-hour window; delayed or
+  missing jobs can reduce the realized daily count.
 - GitHub schedules are best-effort, not a guarantee of exact timing or uptime.
 - Also runs on manual dispatch and pushes to `main` affecting `site/**`,
-  `simulation.py`, `test_simulation.py`, or the workflow itself.
+  `simulation.py`, `evolution_ticker.py`, `test_*.py`, or the workflow itself.
+  These are additional generations using the daily step count and do not
+  consume scheduled windows.
 - Documentation-only edits to the root README or agent instructions do not
   trigger a new generation or deployment.
 - Uses an Ubuntu runner and Python 3.13.
-- Sequence: tests, advance one generation, commit state and dashboard data,
-  upload `site`, deploy Pages.
+- Sequence: check out current `main`, test, calculate daily plan, advance and
+  commit only when eligible, then upload `site` and deploy Pages. Skipped
+  checks still redeploy committed results to recover a failed publication
+  without advancing another generation.
 - Generation commit format: `simulation: evolve generation N`.
 - Permissions: contents write, Pages write, OIDC token write.
 - Concurrency group: `pages`, with in-progress runs not cancelled.
@@ -177,7 +205,7 @@ deployment without discarding state or unnecessarily advancing again.
 
 ## Dated handoff status
 
-Recorded on **2026-09-23 UTC**, after the owner's identity-rewrite request:
+Original handoff recorded on **2026-09-23 UTC**, after the owner's identity-rewrite request:
 
 - Generation **13** was committed and deployed successfully.
 - Generation commit: `43f11bb`; both author and committer map to `gencay`.
@@ -187,3 +215,9 @@ Recorded on **2026-09-23 UTC**, after the owner's identity-rewrite request:
 - No pending implementation task remained; automatic evolution continues.
 
 Treat this as historical context, not a fixed expected generation or commit.
+
+On **2026-10-01 UTC**, the owner requested the README evolution ticker and a
+random 3-6-generation daily schedule that influences the next generation.
+Development started from generation 41 (`179baad`); existing measurements and
+state were preserved. The current behavior is described above; consult live
+metrics and workflow history for the latest generation.

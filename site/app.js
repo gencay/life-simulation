@@ -55,6 +55,7 @@ function showFrame(index) {
   select("#timeline").setAttribute("aria-valuetext", `Generation ${frame.generation}`);
   select("#frame-caption").textContent =
     `Generation ${frame.generation} of ${dashboard.metrics.generation}. ` +
+    (frame.steps ? `${frame.steps} numerical steps in this generation. ` : "Step count was not recorded for this generation. ") +
     `Replay covers ${dashboard.frames.length} saved observations ` +
     `(generations ${dashboard.frames[0].generation}-${dashboard.frames.at(-1).generation}).`;
   drawHistory();
@@ -160,6 +161,16 @@ function updateCommentary() {
   select("#interpretation").textContent =
     `Latest observation, generation ${latest.generation}: ${area}% of the field has V above 0.10. ` +
     `${change} These describe chemical organization, not the emergence of organisms.`;
+  const cadence = dashboard.cadence;
+  if (cadence) {
+    const hours = cadence.hours_utc.map((hour) => `${String(hour).padStart(2, "0")}:17`).join(", ");
+    select("#cadence-information").textContent =
+      `Published plan for ${cadence.date} UTC: ${cadence.daily_generations} scheduled observations ` +
+      `at ${hours}; ${cadence.steps_per_generation} numerical steps each ` +
+      `(${cadence.daily_steps} steps/day if all scheduled runs complete). ` +
+      "A new random draw is made each UTC day. Manual and code-change runs are additional. " +
+      "This page checks for updates every minute.";
+  }
   select("#history-table").replaceChildren(...dashboard.history.slice(-12).reverse().map((item) => {
     const row = document.createElement("tr");
     const values = [
@@ -168,6 +179,8 @@ function updateCommentary() {
       number.format(item.active_cells),
       Number(item.mean_v).toFixed(5),
       Number(item.standard_deviation_v).toFixed(5),
+      item.steps || "\u2014",
+      item.daily_generations || "\u2014",
     ];
     values.forEach((value) => {
       const cell = document.createElement("td");
@@ -211,10 +224,10 @@ async function refreshDashboard() {
     updateCommentary();
     const ageHours = (Date.now() - Date.parse(next.metrics.updated_at)) / 3600000;
     setStatus(
-      ageHours > 8
+      ageHours > 10
         ? `Latest observation is ${Math.floor(ageHours)} hours old; a scheduled run may be delayed.`
         : `Watching published results. Last checked ${new Date().toLocaleTimeString()}.`,
-      ageHours > 8 ? "delayed" : "current",
+      ageHours > 10 ? "delayed" : "current",
     );
   } catch (error) {
     setStatus(

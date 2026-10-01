@@ -21,9 +21,10 @@
       <div class="status" id="status" data-state="loading">
         <span aria-hidden="true"></span><output id="sync-status" aria-live="polite">Loading published observations…</output>
       </div>
-      <p class="schedule">
-        Observations at 02:17, 08:17, 14:17 and 20:17 UTC. This page checks for
-        new results every minute; simulation time is not real-world time.
+      <p class="schedule" id="cadence-information">
+        A daily random draw selects 3–6 scheduled observations. Each shares a
+        480-step daily numerical budget. This page checks for new results every
+        minute; simulation time is not real-world time.
       </p>
       <noscript><p>Enable JavaScript for the historical chart, playback, and automatic updates. The latest field is shown below.</p></noscript>
     </header>
@@ -92,7 +93,7 @@
           <div class="table-scroll">
             <table>
               <caption>Latest 12 observations (the chart includes the full history)</caption>
-              <thead><tr><th scope="col">Generation</th><th scope="col">Observed (UTC)</th><th scope="col">Active sites</th><th scope="col">Mean V</th><th scope="col">Variation</th></tr></thead>
+              <thead><tr><th scope="col">Generation</th><th scope="col">Observed (UTC)</th><th scope="col">Active sites</th><th scope="col">Mean V</th><th scope="col">Variation</th><th scope="col">Steps</th><th scope="col">Daily draw</th></tr></thead>
               <tbody id="history-table"></tbody>
             </table>
           </div>
@@ -141,7 +142,13 @@
             and spatial variation across generations. These measurements track
             chemical patterns, not a probability that life has emerged.
           </p>
-          <p>Each observation advances 80 numerical steps. The four-daily publishing schedule is a practical choice, not a scientific standard.</p>
+          <p>
+            Each UTC day draws 3–6 observations. Dividing a 480-step budget by
+            that number advances each next generation by 80–160 numerical steps.
+            The date-seeded draw is reproducible; it changes the observation
+            interval, not the chemistry. Manual runs add extra observations.
+            This publishing schedule is a practical choice, not a scientific standard.
+          </p>
           <a href="https://github.com/gencay/life-simulation">View source and run history →</a>
         </article>
       </section>

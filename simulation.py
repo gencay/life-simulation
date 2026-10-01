@@ -7,10 +7,13 @@ import argparse
 import csv
 import json
 import math
+import os
 import random
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
+
+from evolution_ticker import render_ticker
 
 WIDTH = 64
 HEIGHT = 64
@@ -21,6 +24,23 @@ FEED = 0.060
 KILL = 0.062
 DT = 1.0
 MAX_FRAMES = 48
+DAILY_STEPS = 480
+
+
+def daily_plan(now: datetime) -> dict:
+    day = now.astimezone(timezone.utc).date().isoformat()
+    seed = f"life-simulation-cadence-v1:{day}"
+    randomizer = random.Random(seed)
+    count = randomizer.randint(3, 6)
+    hours = sorted([0, 8, 16] + randomizer.sample([4, 12, 20], count - 3))
+    return {
+        "date": day,
+        "seed": seed,
+        "daily_generations": count,
+        "hours_utc": hours,
+        "steps_per_generation": DAILY_STEPS // count,
+        "daily_steps": DAILY_STEPS,
+    }
 
 
 def initial_state(seed: int = 20260920) -> dict:
@@ -100,6 +120,7 @@ def advance(state: dict, steps: int = STEPS_PER_GENERATION) -> dict:
     state["u"] = u
     state["v"] = v
     state["generation"] += 1
+    state["steps"] = steps
     state["updated_at"] = datetime.now(timezone.utc).isoformat()
     return state
 
@@ -109,7 +130,7 @@ def measurements(state: dict) -> dict:
     mean = sum(values) / len(values)
     variance = sum((value - mean) ** 2 for value in values) / len(values)
     active_cells = sum(value > 0.10 for value in values)
-    return {
+    metrics = {
         "generation": state["generation"],
         "updated_at": state["updated_at"],
         "mean_v": round(mean, 8),
@@ -117,6 +138,12 @@ def measurements(state: dict) -> dict:
         "active_cells": active_cells,
         "total_cells": len(values),
     }
+    metrics["steps"] = state.get("steps", "")
+    metrics["daily_generations"] = state.get("cadence", {}).get("daily_generations", "")
+    metrics["cadence_date"] = state.get("cadence", {}).get("date", "")
+    metrics["event"] = state.get("event", "")
+    metrics["scheduled_slot"] = state.get("scheduled_slot", "")
+    return metrics
 
 
 def render_svg(state: dict, destination: Path, scale: int = 8) -> None:
@@ -147,6 +174,19 @@ def render_svg(state: dict, destination: Path, scale: int = 8) -> None:
 
 def append_history(destination: Path, metrics: dict) -> None:
     exists = destination.exists()
+    if exists:
+        with destination.open(newline="", encoding="utf-8") as history_file:
+            reader = csv.DictReader(history_file)
+            fields = reader.fieldnames
+            history = list(reader)
+        if fields != list(metrics):
+            if not fields or not set(fields).issubset(metrics):
+                raise ValueError("History contains unexpected columns; refusing to discard data.")
+            # Keep legacy rows intact; unknown historical cadence remains blank.
+            with destination.open("w", newline="", encoding="utf-8") as history_file:
+                writer = csv.DictWriter(history_file, fieldnames=metrics)
+                writer.writeheader()
+                writer.writerows(history)
     with destination.open("a", newline="", encoding="utf-8") as history_file:
         writer = csv.DictWriter(history_file, fieldnames=metrics.keys())
         if not exists:
@@ -194,12 +234,15 @@ def publish_dashboard(output_directory: Path, site_directory: Path) -> None:
     )
     state = json.loads((output_directory / "state.json").read_text(encoding="utf-8"))
     frames = record_frame(output_directory, state)
+    render_ticker(history, frames, state.get("cadence"), output_directory / "evolution.svg")
+    shutil.copyfile(output_directory / "evolution.svg", data_directory / "evolution.svg")
     # One response keeps the field, chart, and readings on the same generation.
     (data_directory / "dashboard.json").write_text(
         json.dumps(
             {
                 "metrics": measurements(state),
                 "parameters": state["parameters"],
+                "cadence": state.get("cadence"),
                 "history": history,
                 "frames": frames,
             },
@@ -213,6 +256,9 @@ def run(
     output_directory: Path,
     steps: int,
     site_directory: Path | None = None,
+    cadence: dict | None = None,
+    event: str = "local",
+    scheduled_slot: str | None = None,
 ) -> dict:
     output_directory.mkdir(parents=True, exist_ok=True)
     state_path = output_directory / "state.json"
@@ -222,6 +268,14 @@ def run(
     else:
         state = initial_state()
 
+    state["event"] = event
+    state["scheduled_slot"] = scheduled_slot or ""
+    if cadence is not None:
+        state["cadence"] = cadence
+    else:
+        state.pop("cadence", None)
+    if scheduled_slot is not None:
+        state["last_scheduled_slot"] = scheduled_slot
     state = advance(state, steps)
     metrics = measurements(state)
     state_path.write_text(
@@ -240,16 +294,58 @@ def run(
     return metrics
 
 
+def evolve(
+    output_directory: Path,
+    site_directory: Path,
+    event: str,
+    now: datetime | None = None,
+    steps: int | None = None,
+) -> dict:
+    now = now or datetime.now(timezone.utc)
+    plan = daily_plan(now)
+    scheduled_slot = None
+    if event == "schedule":
+        if steps is not None:
+            raise ValueError("Scheduled runs must use the daily plan's step count.")
+        hour = now.astimezone(timezone.utc).hour // 4 * 4
+        scheduled_slot = f"{plan['date']}T{hour:02d}:17Z"
+        if hour not in plan["hours_utc"]:
+            return {"advanced": False, "reason": "This window is not selected.", "cadence": plan}
+        state_path = output_directory / "state.json"
+        if state_path.exists():
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+            if state.get("last_scheduled_slot", "") >= scheduled_slot:
+                return {"advanced": False, "reason": "This or a later window was already committed.", "cadence": plan}
+    metrics = run(
+        output_directory,
+        steps if steps is not None else plan["steps_per_generation"],
+        site_directory,
+        cadence=plan,
+        event=event,
+        scheduled_slot=scheduled_slot,
+    )
+    return {"advanced": True, "metrics": metrics, "cadence": plan}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=Path("simulation"))
     parser.add_argument("--site", type=Path, default=Path("site"))
-    parser.add_argument("--steps", type=int, default=STEPS_PER_GENERATION)
+    parser.add_argument("--steps", type=int)
+    parser.add_argument(
+        "--event", choices=["local", "push", "schedule", "workflow_dispatch"], default="local"
+    )
     args = parser.parse_args()
-    if args.steps <= 0:
+    if args.steps is not None and args.steps <= 0:
         parser.error("--steps must be positive")
+    if args.event == "schedule" and args.steps is not None:
+        parser.error("--steps cannot override the scheduled daily plan")
 
-    print(json.dumps(run(args.output, args.steps, args.site), indent=2))
+    result = evolve(args.output, args.site, args.event, steps=args.steps)
+    if os.environ.get("GITHUB_OUTPUT"):
+        with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
+            output.write(f"advanced={str(result['advanced']).lower()}\n")
+    print(json.dumps(result, indent=2))
 
 
 if __name__ == "__main__":
