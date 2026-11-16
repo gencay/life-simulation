@@ -1,13 +1,13 @@
 {
-  "generation": 138,
-  "updated_at": "2026-11-16T06:25:19.467397+00:00",
-  "mean_v": 0.20756425,
-  "standard_deviation_v": 0.13557748,
-  "active_cells": 2731,
+  "generation": 139,
+  "updated_at": "2026-11-16T18:30:58.508128+00:00",
+  "mean_v": 0.20758594,
+  "standard_deviation_v": 0.1355649,
+  "active_cells": 2729,
   "total_cells": 4096,
   "steps": 96,
   "daily_generations": 5,
   "cadence_date": "2026-11-16",
   "event": "schedule",
-  "scheduled_slot": "2026-11-16T04:17Z"
+  "scheduled_slot": "2026-11-16T16:17Z"
 }
