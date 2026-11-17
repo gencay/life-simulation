@@ -1805,5 +1805,18 @@
     "cadence_date": "2026-11-16",
     "event": "schedule",
     "scheduled_slot": "2026-11-16T16:17Z"
+  },
+  {
+    "generation": "140",
+    "updated_at": "2026-11-17T02:54:55.891331+00:00",
+    "mean_v": "0.20760737",
+    "standard_deviation_v": "0.13555239",
+    "active_cells": "2732",
+    "total_cells": "4096",
+    "steps": "96",
+    "daily_generations": "5",
+    "cadence_date": "2026-11-17",
+    "event": "schedule",
+    "scheduled_slot": "2026-11-17T00:17Z"
   }
 ]
