@@ -1,13 +1,13 @@
 {
-  "generation": 151,
-  "updated_at": "2026-11-22T21:48:31.533146+00:00",
-  "mean_v": 0.20785101,
-  "standard_deviation_v": 0.13539997,
-  "active_cells": 2748,
+  "generation": 152,
+  "updated_at": "2026-11-23T07:34:16.198177+00:00",
+  "mean_v": 0.20788012,
+  "standard_deviation_v": 0.13538091,
+  "active_cells": 2750,
   "total_cells": 4096,
-  "steps": 96,
-  "daily_generations": 5,
-  "cadence_date": "2026-11-22",
+  "steps": 120,
+  "daily_generations": 4,
+  "cadence_date": "2026-11-23",
   "event": "schedule",
-  "scheduled_slot": "2026-11-22T20:17Z"
+  "scheduled_slot": "2026-11-23T04:17Z"
 }
